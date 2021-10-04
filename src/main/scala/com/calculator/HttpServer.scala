@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 
 trait Service {
   implicit val system: ActorSystem
-  // needed for the future flatMap/onComplete in the end
+  // can execute program logic asynchronously
   implicit def executor: ExecutionContext
 }
 
