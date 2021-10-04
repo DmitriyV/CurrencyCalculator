@@ -13,6 +13,7 @@ trait Service {
 }
 
 object HttpServer extends App with Service {
+  //initialize Actor system for Akka HTTP
   override implicit val system: ActorSystem = ActorSystem()
   override implicit val executor: ExecutionContext = system.dispatcher
 
