@@ -1,26 +1,20 @@
 package com.calculator
 
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import com.calculator.http.HealthRoute
 
-import scala.io.StdIn
+import scala.concurrent.ExecutionContext
 
-object HttpServer {
+trait Service {
+  implicit val system: ActorSystem
+  // needed for the future flatMap/onComplete in the end
+  implicit def executor: ExecutionContext
+}
 
-  def main(args: Array[String]): Unit = {
+object HttpServer extends App with Service {
+  override implicit val system: ActorSystem = ActorSystem()
+  override implicit val executor: ExecutionContext = system.dispatcher
 
-    implicit val system = ActorSystem(Behaviors.empty, "my-system")
-    // needed for the future flatMap/onComplete in the end
-    implicit val executionContext = system.executionContext
-
-    val bindingFuture = Http().newServerAt("localhost", 8080).bind(HealthRoute.healthRoute)
-
-    println(s"Server now online. Please navigate to http://localhost:8080/health\nPress RETURN to stop...")
-    StdIn.readLine() // let it run until user presses return
-    bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
-      .onComplete(_ => system.terminate()) // and shutdown when done
-  }
+  Http().newServerAt("localhost", 8080).bindFlow(HealthRoute.healthRoute)
 }
